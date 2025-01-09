@@ -1,0 +1,132 @@
+#include <stdio.h>
+int szukaj_max(int a, int b, int c, int d);
+
+int main()
+{
+	int x, y, z, q, wynik;
+	printf("\nProsze podac trzy liczby calkowite ze znakiem: ");
+	scanf_s("%d %d %d %d", &x, &y, &z, &q, 48);
+	wynik = szukaj_max(x, y, z, q);
+	printf("\nSposrod podanych liczb %d, %d, %d, 	 %d, \
+ liczba %d jest najwieksza\n", x, y, z, q, wynik);
+	return 0;
+}
+
+
+.686
+.model flat
+
+public _szukaj_max
+.code
+;x- [ebp+8]
+;y- [ebp+12]
+;z- [ebp+16]
+;q- [ebp+20]
+_szukaj_max PROC
+	push ebp ; zapisanie zawartoœci EBP na stosie
+	mov ebp, esp ; kopiowanie zawartoœci ESP do EBP
+
+	mov eax, [ebp+8]
+	mov ecx, 3
+sprawdzaj:
+
+	cmp eax, [ebp + 4 * ecx]
+	jg nie_zamieniaj
+	mov eax, [ebp + 4 * ecx];wpisz aktualnie najwieksza wartosc
+	nie_zamieniaj:
+	inc ecx	
+	cmp ecx, 5
+	jbe sprawdzaj
+
+	pop ebp
+	ret
+
+_szukaj_max ENDP
+END
+
+#include <stdio.h>
+#include <string.h>
+
+#define MAX_STR_LEN 10
+#define NUM_STRINGS 5
+
+
+void concat(char strings[NUM_STRINGS][MAX_STR_LEN + 1], char* result, size_t result_size);
+
+int main() {
+    char strings[NUM_STRINGS][MAX_STR_LEN + 1]; 
+    char result[(MAX_STR_LEN + 1) * NUM_STRINGS] = ""; 
+    size_t result_size = sizeof(result); 
+    int i;
+
+    memset(strings, 0, sizeof(strings));
+
+    printf("Wprowadz %d lancuchow znakow (maksymalnie %d znakow kazdy):\n", NUM_STRINGS, MAX_STR_LEN);
+
+    for (i = 0; i < NUM_STRINGS; i++) {
+        printf("Lancuch %d: ", i + 1);
+        if (fgets(strings[i], sizeof(strings[i]), stdin) == NULL) {
+            fprintf(stderr, "Blad podczas wczytywania danych.\n");
+            return 1;
+        }
+
+        size_t len = strlen(strings[i]);
+        if (len > 0 && strings[i][len - 1] == '\n') {
+            strings[i][len - 1] = '\0';
+        }
+    }
+
+    concat(strings, result, result_size);
+
+    printf("\nWynikowy tekst: %s\n", result);
+
+    return 0;
+}
+
+----------------------
+.686
+.model flat
+
+public _srednia_harm
+
+.data
+
+
+.code
+_srednia_harm PROC
+	push ebp
+	mov ebp, esp
+	; obliczanie sredniej harmonicznej
+	finit
+	movzx ecx, byte ptr [ebp+12];liczba elementow
+	mov eax, [ebp+8]; adres pierwszego elementu tablicy
+
+
+	;ST(0) - wartosc liczby
+	;ST(1) - jedynka
+	;ST(2) - suma
+	mov ebx, 0
+	fldz
+	petla_sumy:
+	fld1
+	fld dword ptr [eax + ebx * 4]
+	fdivp st(1), st(0)
+
+	fadd st(1), st(0)
+	inc ebx
+	fstp st(0)
+
+	loop petla_sumy
+
+	fild dword ptr [ebp+12]
+
+	fxch
+	fdivp st(1), st(0)
+
+	pop ebp
+	ret
+
+
+_srednia_harm ENDP
+
+end

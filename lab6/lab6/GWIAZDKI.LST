@@ -1,0 +1,334 @@
+Microsoft (R) Macro Assembler Version 5.00                  12/16/24 10:15:04
+                                                             Page     1-1
+
+
+       1				.386 
+       2 0000				rozkazy SEGMENT use16 
+       3						ASSUME cs:rozkazy 
+       4 0000  ????					apple_x dw ? ; Pozycja 
+					jab³ka (x) 
+       5 0002  ??			apple_y db ? ; Pozycja jab³ka (y) 
+       6				 
+       7 0003						generate_apple PROC 
+       8				    ; Losowanie X 
+       9 0003  B4 02			    mov ah, 2 
+      10 0005  CD 1A			    int 1Ah 
+      11 0007  8A C2			    mov al, dl ; Losowa wartoœæ w DL 
+      12 0009  24 9D			    and al, 157 ; Ograniczenie szerokoœ
+					ci planszy (0-157) 
+      13 000B  2E: A3 0000 R		    mov cs:apple_x, ax 
+      14				 
+      15				    ; Losowanie Y 
+      16 000F  B4 02			    mov ah, 2 
+      17 0011  CD 1A			    int 1Ah 
+      18 0013  8A C2			    mov al, dl 
+      19 0015  24 19			    and al, 25 ; Ograniczenie wysokoœci
+					 planszy (0-25) 
+      20 0017  2E: A2 0002 R		    mov cs:apple_y, al 
+      21				 
+      22				    ; Wyœwietlanie jab³ka w pamiêci wid
+					eo 
+      23 001B  B8 B800			    mov ax, 0B800h 
+      24 001E  8E C0			    mov es, ax 
+      25 0020  2E: 8B 1E 0000 R		    mov bx, cs:apple_x 
+      26 0025  2E: A0 0002 R		    mov al, cs:apple_y 
+      27 0029  B1 A0			    mov cl, 160 
+      28 002B  F6 E1			    mul cl 
+      29 002D  03 D8			    add bx, ax 
+      30				 
+      31 002F  B0 41			    mov al, 'A' ; Symbol jab³ka 
+      32 0031  26: 88 07		    mov BYTE PTR es:[bx], al 
+      33 0034  26: C6 47 01 44		    mov BYTE PTR es:[bx+1], 01000100b ;
+					 Kolor czerwony 
+      34 0039  C3			    ret 
+      35 003A				generate_apple ENDP 
+      36				 
+      37				 
+      38				 
+      39 003A				wyswietl_AL PROC 
+      40				 
+      41 003A  C3			ret 
+      42 003B				wyswietl_AL ENDP 
+      43				 
+      44 003B				obsluga_zegara PROC 
+      45 003B  50				push ax 
+      46 003C  53				push bx 
+      47 003D  52				push dx 
+      48 003E  06				push es 
+      49 003F  BA 0000				mov dx, 0 
+Microsoft (R) Macro Assembler Version 5.00                  12/16/24 10:15:04
+                                                             Page     1-2
+
+
+      50 0042  B8 B800				mov ax, 0B800h 
+      51 0045  8E C0				mov es,ax 
+      52 0047  BB 0000				mov bx,0 
+      53 004A  2E: 81 2E 0129 R 0001		sub cs:timer,DWORD PTR 1 
+      54 0051  0F 85 011A R			jnz wysw_dalej 
+      55 0055  2E: C7 06 0129 R 0003		mov cs:timer,DWORD PTR 3 
+      56				 
+      57 005C  2E: A1 0123 R			mov ax,cs:pos_x 
+      58 0060  B1 02				mov cl,2 
+      59 0062  F6 F1				div cl 
+      60 0064  BB 0000				mov bx,0 
+      61 0067  E8 0003 R			call generate_apple 
+      62 006A  E8 003A R			call wyswietl_AL 
+      63 006D  2E: A0 0125 R			mov al,cs:pos_y 
+      64 0071  BB 0008				mov bx,8 
+      65 0074  E8 003A R			call wyswietl_AL 
+      66				 
+      67 0077  2E: 8B 1E 0123 R			mov bx,cs:pos_x 
+      68 007C  2E: A0 0125 R			mov al,cs:pos_y 
+      69 0080  B1 A0				mov cl,160 
+      70 0082  F6 E1				mul cl 
+      71 0084  03 D8				add bx,ax 
+      72				 
+      73 0086  2E: 80 3E 0125 R 00		cmp cs:pos_y,0 
+      74 008C  0F 86 00B2 R			jbe stop 
+      75 0090  2E: 80 3E 0125 R 19		cmp cs:pos_y,25 
+      76 0096  0F 83 00B2 R			jae stop 
+      77 009A  2E: 83 3E 0123 R 00		cmp cs:pos_x,0 
+      78 00A0  0F 86 00B2 R			jbe stop 
+      79 00A4  2E: 81 3E 0123 R 009D		cmp cs:pos_x,157 
+      80 00AB  0F 83 00B2 R			jae stop 
+      81					 
+      82 00AF  EB 08 90				jmp nie_stop 
+      83 00B2					stop: 
+      84 00B2  2E: C7 06 01A1 R 0001		mov cs:exit,1 
+      85 00B9					nie_stop: 
+      86				 
+      87 00B9  B0 20				mov al,' ' 
+      88 00BB  26: 88 07			mov BYTE ptr es:[bx],al 
+      89 00BE  26: C6 47 01 20			mov BYTE PTR es:[bx+1], 0010000
+					0b 
+      90					 
+      91 00C3  BB 0000				mov bx,0 
+      92 00C6  2E: A1 0123 R			mov ax,cs:pos_x 
+      93 00CA  2E: 03 06 0126 R			add ax,cs:d_x 
+      94 00CF  2E: A3 0123 R			mov cs:pos_x,ax 
+      95				 
+      96 00D3  2E: A0 0125 R			mov al,cs:pos_y 
+      97 00D7  2E: 02 06 0128 R			add al,cs:d_y 
+      98 00DC  2E: A2 0125 R			mov cs:pos_y,al 
+      99				 
+     100 00E0  2E: 8B 16 0000 R			mov dx, cs:apple_x 
+     101 00E5  2E: 39 16 0123 R			cmp cs:pos_x, dx 
+     102 00EA  0F 85 011A R			jne no_apple 
+Microsoft (R) Macro Assembler Version 5.00                  12/16/24 10:15:04
+                                                             Page     1-3
+
+
+     103 00EE  2E: 8B 16 0002 R			mov dx, cs:apple_y 
+gwiazdki.asm(103): warning A4031: Operand types must match
+     104 00F3  2E: 39 16 0125 R			cmp cs:pos_y, dx 
+gwiazdki.asm(104): warning A4031: Operand types must match
+     105 00F8  0F 85 011A R			jne no_apple 
+     106 00FC  B8 B800				mov ax, 0B800h 
+     107 00FF  8E C0			    mov es, ax 
+     108 0101  2E: 8B 1E 0000 R		    mov bx, cs:apple_x 
+     109 0106  2E: A0 0002 R		    mov al, cs:apple_y 
+     110 010A  B1 A0			    mov cl, 160 
+     111 010C  F6 E1			    mul cl 
+     112 010E  03 D8			    add bx, ax 
+     113 0110  B0 20				mov al, ' ' 
+     114 0112  26: 88 07			mov BYTE ptr es:[bx],al 
+     115 0115  26: C6 47 01 20			mov BYTE PTR es:[bx+1], 0010000
+					0b 
+     116 011A					no_apple: 
+     117				 
+     118 011A				wysw_dalej: 
+     119				 
+     120 011A  07				pop es 
+     121 011B  5A				pop dx 
+     122 011C  5B				pop bx 
+     123 011D  58				pop ax 
+     124				 
+     125 011E  2E: FF 2E 012B R			jmp dword PTR cs:wektor8 
+     126				 
+     127 0123  0032				pos_x dw 50;pozycja ogolna x 
+     128 0125  0A				pos_y db 10;pozycja ogolna y 
+     129 0126  0000				d_x dw 0;zmiana pozycji x  
+     130 0128  00				d_y db 0;zmiana pozycji y 
+     131 0129  0012				timer dw 18 
+     132 012B  ????????				wektor8 dd ? 
+     133 012F				obsluga_zegara ENDP 
+     134				 
+     135 012F				obsluga_klawiatury PROC 
+     136 012F  50				push ax 
+     137 0130  53				push bx 
+     138 0131  06				push es 
+     139 0132  B8 B800				mov ax, 0B800h 
+     140 0135  8E C0				mov es,ax 
+     141 0137  BB 0000				mov bx,0 
+     142 013A  E4 60				in al,60h 
+     143 013C  3C 48				cmp al,72 
+     144 013E  0F 85 014F R			jne nie_gora 
+     145 0142  2E: C7 06 0126 R 0000		mov cs:d_x,0 
+     146 0149  2E: C6 06 0128 R FF		mov cs:d_y,-1 
+     147 014F					nie_gora: 
+     148 014F  3C 50				cmp al,80 
+     149 0151  0F 85 0162 R			jne nie_dol 
+     150 0155  2E: C7 06 0126 R 0000		mov cs:d_x,0 
+     151 015C  2E: C6 06 0128 R 01		mov cs:d_y,1 
+     152 0162					nie_dol: 
+     153 0162  3C 4B				cmp al,75 
+Microsoft (R) Macro Assembler Version 5.00                  12/16/24 10:15:04
+                                                             Page     1-4
+
+
+     154 0164  0F 85 0175 R			jne nie_lewo 
+     155 0168  2E: C7 06 0126 R FFFE		mov cs:d_x,-2 
+     156 016F  2E: C6 06 0128 R 00		mov cs:d_y,0 
+     157 0175					nie_lewo: 
+     158 0175  3C 4D				cmp al,77 
+     159 0177  0F 85 0188 R			jne nie_prawo 
+     160 017B  2E: C7 06 0126 R 0002		mov cs:d_x,2 
+     161 0182  2E: C6 06 0128 R 00		mov cs:d_y,0 
+     162 0188					nie_prawo: 
+     163 0188  3C 01				cmp al,1 
+     164 018A  0F 85 0195 R			jne obs_dalej 
+     165 018E  2E: C7 06 01A1 R 0001		mov cs:exit, DWORD PTR 1 
+     166 0195				obs_dalej: 
+     167 0195  07				pop es 
+     168 0196  5B				pop bx 
+     169 0197  58				pop ax 
+     170 0198  2E: FF 2E 019D R			jmp dword PTR cs:wektor9 
+     171 019D  ????????				wektor9 dd ? 
+     172 01A1  0000				exit dw 0 
+     173 01A3				obsluga_klawiatury ENDP 
+     174				 
+     175 01A3				zacznij: 
+     176 01A3  B0 00			mov al,0 
+     177 01A5  B4 05			mov ah,5 
+     178 01A7  CD 0A			int 10 
+     179				 
+     180 01A9  B8 0003			mov ax,03h 
+     181 01AC  CD 10			int 10h 
+     182				 
+     183				;obsluga przerwan zegara 
+     184 01AE  B8 0000			mov ax,0 
+     185 01B1  8E D8			mov ds,ax 
+     186				 
+     187 01B3  66| A1 0020		mov eax,ds:[32] 
+     188 01B7  2E: 66| A3 012B R	mov cs:wektor8, eax 
+     189				 
+     190 01BC  B8 ---- R		mov ax,SEG obsluga_zegara 
+     191 01BF  BB 003B R		mov bx,OFFSET obsluga_zegara 
+     192 01C2  FA			cli 
+     193				 
+     194 01C3  89 1E 0020		mov ds:[32],bx 
+     195 01C7  A3 0022			mov ds:[34],ax 
+     196 01CA  FB			sti 
+     197				;obsluga przerwan klawiatury 
+     198 01CB  B8 0000			mov ax,0 
+     199 01CE  8E D8			mov ds,ax 
+     200 01D0  66| A1 0024		mov eax,ds:[36] 
+     201 01D4  2E: 66| A3 019D R	mov cs:wektor9,eax 
+     202				 
+     203 01D9  B8 ---- R		mov ax,SEG obsluga_klawiatury 
+     204 01DC  BB 012F R		mov bx,OFFSET obsluga_klawiatury 
+     205 01DF  FA			cli 
+     206 01E0  89 1E 0024		mov ds:[36],bx 
+     207 01E4  A3 0026			mov ds:[38],ax 
+Microsoft (R) Macro Assembler Version 5.00                  12/16/24 10:15:04
+                                                             Page     1-5
+
+
+     208 01E7  FB			sti 
+     209				 
+     210 01E8				ptl:  
+     211 01E8  2E: 83 3E 01A1 R 01	cmp cs:exit,1 
+     212 01EE  75 F8			jnz ptl 
+     213				;koniec programu 
+     214 01F0  2E: 66| A1 019D R	mov eax,cs:wektor9 
+     215 01F5  FA			cli 
+     216 01F6  66| A3 0024		mov ds:[36],eax 
+     217 01FA  FB			sti 
+     218				 
+     219 01FB  2E: 66| A1 012B R	mov eax,cs:wektor8 
+     220 0200  FA			cli 
+     221 0201  66| A3 0020		mov ds:[32],eax 
+     222 0205  FB			sti 
+     223				 
+     224 0206  B8 0003			mov ax,03h 
+     225 0209  CD 10			int 10h 
+     226				 
+     227 020B  B0 00			mov al,0 
+     228 020D  B4 4C			mov ah,4Ch 
+     229 020F  CD 21			int 21h 
+     230 0211				rozkazy ENDS 
+     231				 
+     232 0000				nasz_stos SEGMENT stack 
+     233 0000  0080[				db 128 dup (?) 
+     234	    ??			
+     235			 ]	
+     236				
+     237 0080				nasz_stos ENDS 
+     238				 
+     239				END zacznij 
+Microsoft (R) Macro Assembler Version 5.00                  12/16/24 10:15:04
+                                                             Symbols-1
+
+
+
+
+                N a m e         	Size	Length	 Align	Combine Class
+
+NASZ_STOS  . . . . . . . . . . .  	32 Bit	0080	PARA	STACK	
+ROZKAZY  . . . . . . . . . . . .  	16 Bit	0211	PARA	NONE	
+
+Symbols:            
+
+                N a m e         	Type	 Value	 Attr
+
+APPLE_X  . . . . . . . . . . . .  	L WORD	0000	ROZKAZY
+APPLE_Y  . . . . . . . . . . . .  	L BYTE	0002	ROZKAZY
+
+D_X  . . . . . . . . . . . . . .  	L WORD	0126	ROZKAZY
+D_Y  . . . . . . . . . . . . . .  	L BYTE	0128	ROZKAZY
+
+EXIT . . . . . . . . . . . . . .  	L WORD	01A1	ROZKAZY
+
+GENERATE_APPLE . . . . . . . . .  	N PROC	0003	ROZKAZY	Length = 0037
+
+NIE_DOL  . . . . . . . . . . . .  	L NEAR	0162	ROZKAZY
+NIE_GORA . . . . . . . . . . . .  	L NEAR	014F	ROZKAZY
+NIE_LEWO . . . . . . . . . . . .  	L NEAR	0175	ROZKAZY
+NIE_PRAWO  . . . . . . . . . . .  	L NEAR	0188	ROZKAZY
+NIE_STOP . . . . . . . . . . . .  	L NEAR	00B9	ROZKAZY
+NO_APPLE . . . . . . . . . . . .  	L NEAR	011A	ROZKAZY
+
+OBSLUGA_KLAWIATURY . . . . . . .  	N PROC	012F	ROZKAZY	Length = 0074
+OBSLUGA_ZEGARA . . . . . . . . .  	N PROC	003B	ROZKAZY	Length = 00F4
+OBS_DALEJ  . . . . . . . . . . .  	L NEAR	0195	ROZKAZY
+
+POS_X  . . . . . . . . . . . . .  	L WORD	0123	ROZKAZY
+POS_Y  . . . . . . . . . . . . .  	L BYTE	0125	ROZKAZY
+PTL  . . . . . . . . . . . . . .  	L NEAR	01E8	ROZKAZY
+
+STOP . . . . . . . . . . . . . .  	L NEAR	00B2	ROZKAZY
+
+TIMER  . . . . . . . . . . . . .  	L WORD	0129	ROZKAZY
+
+WEKTOR8  . . . . . . . . . . . .  	L DWORD	012B	ROZKAZY
+WEKTOR9  . . . . . . . . . . . .  	L DWORD	019D	ROZKAZY
+WYSWIETL_AL  . . . . . . . . . .  	N PROC	003A	ROZKAZY	Length = 0001
+WYSW_DALEJ . . . . . . . . . . .  	L NEAR	011A	ROZKAZY
+
+ZACZNIJ  . . . . . . . . . . . .  	L NEAR	01A3	ROZKAZY
+
+@FILENAME  . . . . . . . . . . .  	TEXT  gwiazdki		
+
+Microsoft (R) Macro Assembler Version 5.00                  12/16/24 10:15:04
+                                                             Symbols-2
+
+
+
+    236 Source  Lines
+    236 Total   Lines
+     29 Symbols
+
+  50372 + 466172 Bytes symbol space free
+
+      2 Warning Errors
+      0 Severe  Errors
