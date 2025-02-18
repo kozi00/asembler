@@ -1,5 +1,0 @@
-﻿  main.c
-C:\Users\Kacper\source\repos\quicksort\quicksort\main.c(9,21): warning C4013: niezdefiniowany "malloc"; przy założeniu, że extern zwraca int
-C:\Users\Kacper\source\repos\quicksort\quicksort\main.c(9,15): warning C4312: "typ rzutowania": konwersja z "int" na "int *" jest większej wielkości
-main.obj : error LNK2019: nierozpoznany symbol zewnętrzny quicksort przywołany w funkcji main
-C:\Users\Kacper\source\repos\quicksort\x64\Debug\quicksort.exe : fatal error LNK1120: liczba nierozpoznanych elementów zewnętrznych: 1
