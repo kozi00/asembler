@@ -1,0 +1,2 @@
+﻿main.obj : error LNK2019: nierozpoznany symbol zewnętrzny _quicksort przywołany w funkcji _main
+C:\Users\Kacper\source\repos\quicksort\Debug\quicksort.exe : fatal error LNK1120: liczba nierozpoznanych elementów zewnętrznych: 1
