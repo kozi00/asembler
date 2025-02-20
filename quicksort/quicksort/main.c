@@ -3,8 +3,9 @@
 void quicksort(int* array, int low, int high);
 
 int main() {
+	int length = 0;
 	printf_s("Podaj liczbe elementow tablicy: ");
-	int length = scanf_s("%d", &length);
+	scanf_s("%d", &length);
 
 	int* array = (int*)malloc(length * sizeof(int));
 
